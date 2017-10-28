@@ -11,13 +11,24 @@ import Control.Monad
 
 
 --
+-- Insert Command
+--
+newtype Name = Name String deriving (Show)
+newtype Description = Description String deriving (Show)
+
+--
 -- Program Actions
 --
-data ProgramCommand = List | Status | Insert | Help
+data ProgramCommand =
+  List |
+  Status |
+  Insert Name (Maybe Description) |
+  Help
+  deriving (Show)
 
 
 insertCommand :: Mod CommandFields ProgramCommand
-insertCommand = command "insert" ( info (commandOptions Insert) ( progDesc "Insert a new Recipe"))
+insertCommand = command "insert" ( info ( insertOptions ) ( progDesc "Insert a new Recipe with name NAME and (optionally) description DESCRIPTION"))
 
 listCommand :: Mod CommandFields ProgramCommand
 listCommand = command "list" ( info (commandOptions List) ( progDesc "List Available Recipes"))
@@ -35,6 +46,8 @@ programCommand = hsubparser
 commandOptions :: ProgramCommand -> Parser ProgramCommand
 commandOptions x = pure x
 
+insertOptions = Insert <$> name <*> description
+
 --
 -- Program Options
 --
@@ -43,24 +56,29 @@ programInfo :: ParserInfo ProgramCommand
 programInfo = info (programCommand <**> helper)
   ( fullDesc <> progDesc "Query a recipe database" <> header "recipes - lots of them!" )
 
-description :: Parser (Maybe String)
-description = option maybeStr
+description :: Parser (Maybe Description)
+description = argument (maybeStr2 Description) (metavar "DESCRIPTION" <> value Nothing)
+
+description2 = option (maybeStr2 Description)
   ( long "description" <>
     short 'd' <>
     metavar "DESCRIPTION" <>
     value Nothing <>
-    help "name recipe description" )
+    help "recipe description" )
 
-name :: Parser (Maybe String)
-name = option maybeStr
+name :: Parser Name
+name = argument (Name <$> str) (metavar "NAME")
+
+name2 = option (Name <$> str)
   ( long "name" <>
     short 'n' <>
     metavar "NAME" <>
-    value Nothing <>
     help "the recipe name" )
 
 maybeStr :: ReadM (Maybe String)
 maybeStr = Just <$> str
+
+maybeStr2 f = (Just . f) <$> str
 
 --
 -- MySQL Setup
@@ -103,8 +121,10 @@ printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo
 
 runAction :: Connection -> ProgramCommand -> IO ()
 
-runAction conn Insert = do
+runAction conn (Insert (Name n) desc) = do
   putStrLn "INSERT"
+  putStrLn n
+  putStrLn (show desc)
 
 runAction conn List = do
   xs <- query_ conn "SELECT id, name, description FROM recipes"
