@@ -71,10 +71,14 @@ setupTables conn =
      return ()
 
 
+programPrefs :: ParserPrefs
+programPrefs = prefs showHelpOnEmpty
+
 -- Test Fn to try out different args interactively
 world :: IO ProgramCommand
 world = do
-  cmd <- handleParseResult $ execParserPure (prefs showHelpOnEmpty) opts (words "")
+  let args = words "" -- Change the string here to test out different args
+  cmd <- handleParseResult $ execParserPure programPrefs opts args
   return cmd
 
 hello :: IO ()
