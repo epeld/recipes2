@@ -13,7 +13,10 @@ import Control.Monad
 --
 -- Program Actions
 --
-data Action = List | Status
+data Action = Insert | List | Status
+
+insert :: Parser Action
+insert = flag' Insert (long "insert" <> short 'i' <> help "Insert a new Recipe")
 
 list :: Parser Action
 list = flag' List (long "list" <> short 'l' <> help "List Available Recipes")
@@ -25,7 +28,7 @@ defaultAction :: Parser Action
 defaultAction = pure List
 
 action :: Parser Action
-action = list <|> status <|> defaultAction
+action = list <|> status <|> insert <|> defaultAction
 
 
 --
@@ -67,6 +70,9 @@ hello = do
   runAction conn (programAction options)
 
 runAction :: Connection -> Action -> IO ()
+
+runAction conn Insert = do
+  putStrLn "INSERT"
 
 runAction conn List = do
   xs <- query_ conn "SELECT id, name, description FROM recipes"
