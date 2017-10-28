@@ -3,7 +3,12 @@
 
 import Database.MySQL.Simple
 import Options.Applicative
+
 import Data.Monoid
+import qualified Data.Text as Text
+
+import Control.Monad
+
 
 --
 -- Program Actions
@@ -17,7 +22,7 @@ status :: Parser Action
 status = flag' Status (long "status" <> short 's' <> help "Print Status Info")
 
 defaultAction :: Parser Action
-defaultAction = pure Status
+defaultAction = pure List
 
 action :: Parser Action
 action = list <|> status <|> defaultAction
@@ -46,7 +51,7 @@ connectInfo = (defaultConnectInfo { connectPassword = "abcabc", connectDatabase 
 
 setupTables :: Connection -> IO ()
 setupTables conn =
-  do let q = "CREATE TABLE IF NOT EXISTS recipes (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(100) NOT NULL, PRIMARY KEY (id))"
+  do let q = "CREATE TABLE IF NOT EXISTS recipes (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(100) NOT NULL, description VARCHAR(300), PRIMARY KEY (id))"
      execute_ conn q
      return ()
 
@@ -62,7 +67,12 @@ hello = do
   runAction conn (programAction options)
 
 runAction :: Connection -> Action -> IO ()
-runAction _ List = putStrLn "TODO List!"
+
+runAction conn List = do
+  xs <- query_ conn "SELECT id, name, description FROM recipes"
+  forM_ xs $ \ (id, name, description) ->
+    putStrLn $ show (id :: Int) ++ ", " ++ Text.unpack name ++ ", " ++ Text.unpack description
+    
 runAction conn Status = do
-  [Only i] <- query_ conn "select count(*) from recipes"
-  putStrLn (unwords ["Recipe", "Count", (show (i :: Int))])
+  [Only i] <- query_ conn "SELECT count(*) FROM recipes"
+  putStrLn (unwords [(show (i :: Int)), "recipes", "in", "database"])
