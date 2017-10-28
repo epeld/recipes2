@@ -38,7 +38,7 @@ commandOptions x = pure x
 
 opts :: ParserInfo ProgramCommand
 opts = info (programCommand <**> helper)
-  ( fullDesc <> progDesc "Query a Database full of Recipes" <> header "recipes - lots of them!" )
+  ( fullDesc <> progDesc "Query a recipe database" <> header "recipes - lots of them!" )
 
 description :: Parser (Maybe String)
 description = option maybeStr
@@ -69,6 +69,13 @@ setupTables conn =
   do let q = "CREATE TABLE IF NOT EXISTS recipes (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(100) NOT NULL, description VARCHAR(300), PRIMARY KEY (id))"
      execute_ conn q
      return ()
+
+
+-- Test Fn to try out different args interactively
+world :: IO ProgramCommand
+world = do
+  cmd <- handleParseResult $ execParserPure (prefs showHelpOnEmpty) opts (words "")
+  return cmd
 
 hello :: IO ()
 hello = do
