@@ -121,10 +121,12 @@ printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo
 
 runAction :: Connection -> ProgramCommand -> IO ()
 
-runAction conn (Insert (Name n) desc) = do
-  putStrLn "INSERT"
-  putStrLn n
-  putStrLn (show desc)
+runAction conn (Insert (Name name) desc) = do
+  let d = case desc of
+        Nothing -> "NULL"
+        Just (Description dc) -> dc
+  n <- execute conn "INSERT INTO recipes (name, description) VALUES (?,?)" [name, d]
+  putStrLn (show n ++ " recipe(s) added")
 
 runAction conn List = do
   xs <- query_ conn "SELECT id, name, description FROM recipes"
