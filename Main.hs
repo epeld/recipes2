@@ -46,6 +46,24 @@ opts :: ParserInfo ProgramOptions
 opts = info (programOptions <**> helper)
   ( fullDesc <> progDesc "Query a Database full of Recipes" <> header "recipes - :)" )
 
+description :: Parser (Maybe String)
+description = option maybeStr
+  ( long "description" <>
+    short 'd' <>
+    metavar "DESCRIPTION" <>
+    value Nothing <>
+    help "name recipe description" )
+
+name :: Parser (Maybe String)
+name = option maybeStr
+  ( long "name" <>
+    short 'n' <>
+    metavar "NAME" <>
+    value Nothing <>
+    help "the recipe name" )
+
+maybeStr :: ReadM (Maybe String)
+maybeStr = Just <$> str
 
 --
 -- MySQL Setup
