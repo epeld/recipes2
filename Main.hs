@@ -13,38 +13,32 @@ import Control.Monad
 --
 -- Program Actions
 --
-data Action = Insert | List | Status
+data ProgramCommand = List | Status | Insert | Help
 
-insert :: Parser Action
-insert = flag' Insert (long "insert" <> short 'i' <> help "Insert a new Recipe")
 
-list :: Parser Action
-list = flag' List (long "list" <> short 'l' <> help "List Available Recipes")
+insertCommand :: Mod CommandFields ProgramCommand
+insertCommand = command "insert" ( info (commandOptions Insert) ( progDesc "Insert a new Recipe"))
 
-status :: Parser Action
-status = flag' Status (long "status" <> short 's' <> help "Print Status Info")
+listCommand :: Mod CommandFields ProgramCommand
+listCommand = command "list" ( info (commandOptions List) ( progDesc "List Available Recipes"))
 
-defaultAction :: Parser Action
-defaultAction = pure List
+statusCommand :: Mod CommandFields ProgramCommand
+statusCommand = command "status" ( info (commandOptions List) ( progDesc "Print Status Info"))
 
-action :: Parser Action
-action = list <|> status <|> insert <|> defaultAction
+programCommand :: Parser ProgramCommand
+programCommand = hsubparser
+  ( listCommand <> statusCommand <> insertCommand )
 
+commandOptions :: ProgramCommand -> Parser ProgramCommand
+commandOptions x = pure x
 
 --
 -- Program Options
 --
-data ProgramOptions = ProgramOptions
-  { programAction :: Action
-    
-  }
 
-programOptions :: Parser ProgramOptions
-programOptions = ProgramOptions <$> Main.action
-
-opts :: ParserInfo ProgramOptions
-opts = info (programOptions <**> helper)
-  ( fullDesc <> progDesc "Query a Database full of Recipes" <> header "recipes - :)" )
+opts :: ParserInfo ProgramCommand
+opts = info (programCommand <**> helper)
+  ( fullDesc <> progDesc "Query a Database full of Recipes" <> header "recipes - lots of them!" )
 
 description :: Parser (Maybe String)
 description = option maybeStr
@@ -78,16 +72,16 @@ setupTables conn =
 
 hello :: IO ()
 hello = do
-  options <- execParser opts
+  cmd <- execParser opts
 
   --
   -- MySQL Setup
   conn <- connect connectInfo
   setupTables conn
 
-  runAction conn (programAction options)
+  runAction conn cmd
 
-runAction :: Connection -> Action -> IO ()
+runAction :: Connection -> ProgramCommand -> IO ()
 
 runAction conn Insert = do
   putStrLn "INSERT"
