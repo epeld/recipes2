@@ -25,9 +25,12 @@ listCommand = command "list" ( info (commandOptions List) ( progDesc "List Avail
 statusCommand :: Mod CommandFields ProgramCommand
 statusCommand = command "status" ( info (commandOptions List) ( progDesc "Print Status Info"))
 
+helpCommand :: Mod CommandFields ProgramCommand
+helpCommand = command "help" ( info (pure Help) ( progDesc "Print This Message" ) )
+
 programCommand :: Parser ProgramCommand
 programCommand = hsubparser
-  ( listCommand <> statusCommand <> insertCommand )
+  ( listCommand <> statusCommand <> insertCommand <> helpCommand )
 
 commandOptions :: ProgramCommand -> Parser ProgramCommand
 commandOptions x = pure x
