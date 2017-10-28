@@ -36,8 +36,8 @@ commandOptions x = pure x
 -- Program Options
 --
 
-opts :: ParserInfo ProgramCommand
-opts = info (programCommand <**> helper)
+programInfo :: ParserInfo ProgramCommand
+programInfo = info (programCommand <**> helper)
   ( fullDesc <> progDesc "Query a recipe database" <> header "recipes - lots of them!" )
 
 description :: Parser (Maybe String)
@@ -70,27 +70,33 @@ setupTables conn =
      execute_ conn q
      return ()
 
+setupDatabase :: IO Connection
+setupDatabase = do
+  conn <- connect connectInfo
+  setupTables conn
+  return conn
 
 programPrefs :: ParserPrefs
 programPrefs = prefs showHelpOnEmpty
 
 -- Test Fn to try out different args interactively
-world :: IO ProgramCommand
-world = do
-  let args = words "" -- Change the string here to test out different args
-  cmd <- handleParseResult $ execParserPure programPrefs opts args
-  return cmd
+mainWithArgs :: String -> IO ()
+mainWithArgs stringArgs = do
+  let args = words stringArgs
+  cmd <- handleParseResult $ execParserPure programPrefs programInfo args
+  conn <- setupDatabase
+  runAction conn cmd
 
 hello :: IO ()
 hello = do
-  cmd <- execParser opts
-
-  --
-  -- MySQL Setup
-  conn <- connect connectInfo
-  setupTables conn
+  cmd <- execParser programInfo
+  conn <- setupDatabase
 
   runAction conn cmd
+
+
+printHelp :: IO a
+printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo ShowHelpText mempty
 
 runAction :: Connection -> ProgramCommand -> IO ()
 
@@ -105,3 +111,5 @@ runAction conn List = do
 runAction conn Status = do
   [Only i] <- query_ conn "SELECT count(*) FROM recipes"
   putStrLn (unwords [(show (i :: Int)), "recipes", "in", "database"])
+
+runAction _ Help = printHelp
