@@ -58,7 +58,7 @@ programInfo = info (programCommand <**> helper)
 description :: Parser (Maybe Description)
 description = argument (maybeStr2 Description) (metavar "DESCRIPTION" <> value Nothing)
 
-descriptionOption = option (maybeStr2 Description)
+descriptionOption = option (maybeAuto Description)
   ( long "description" <>
     short 'd' <>
     metavar "DESCRIPTION" <>
@@ -68,7 +68,7 @@ descriptionOption = option (maybeStr2 Description)
 name :: Parser Name
 name = argument (Name <$> str) (metavar "NAME")
 
-nameOption = option (maybeStr2 Name)
+nameOption = option (maybeAuto Name)
   ( long "name" <>
     short 'n' <>
     metavar "NAME" <>
@@ -78,7 +78,7 @@ nameOption = option (maybeStr2 Name)
 maybeStr :: ReadM (Maybe String)
 maybeStr = Just <$> str
 
-maybeStr2 f = Just <$> (f <$> str)
+maybeAuto f = Just <$> (f <$> auto)
 
 --
 -- MySQL Setup
