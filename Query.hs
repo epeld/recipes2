@@ -9,7 +9,7 @@ import Data.Text as Text
 import Control.Monad
 
 data Options = Options
-  { id :: (Maybe RecipeId)
+  { id :: Maybe RecipeId
   , name :: Maybe Name
   , description :: Maybe Description }
   deriving (Show, Eq)
