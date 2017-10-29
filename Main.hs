@@ -103,32 +103,32 @@ mainWithArgs stringArgs = do
   let args = words stringArgs
   cmd <- handleParseResult $ execParserPure programPrefs programInfo args
   conn <- setupDatabase
-  runCommand conn cmd
+  runCommand cmd conn
 
 main :: IO ()
 main = do
   cmd <- execParser programInfo
   conn <- setupDatabase
 
-  runCommand conn cmd
+  runCommand cmd conn
 
 
 printHelp :: IO a
 printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo ShowHelpText mempty
 
-runCommand :: Connection -> ProgramCommand -> IO ()
+runCommand :: ProgramCommand -> Connection -> IO ()
 
-runCommand conn (Insert opts) = do
+runCommand (Insert opts) conn = do
   Insert.run opts conn
 
 
-runCommand conn List = do
+runCommand List conn = do
   xs <- query_ conn "SELECT id, name, description FROM recipes"
   forM_ xs $ \ (id, name, description) ->
     putStrLn $ show (id :: Int) ++ ", " ++ Text.unpack name ++ ", " ++ Text.unpack description
     
-runCommand conn Status = do
+runCommand Status conn = do
   [Only i] <- query_ conn "SELECT count(*) FROM recipes"
   putStrLn (unwords [(show (i :: Int)), "recipes", "in", "database"])
 
-runCommand _ Help = printHelp
+runCommand Help _ = printHelp
