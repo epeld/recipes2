@@ -45,7 +45,7 @@ commandOptions :: ProgramCommand -> Parser ProgramCommand
 commandOptions x = pure x
 
 insertOptions = Insert <$> ( Insert.Options <$> name <*> description )
-queryOptions = Query <$> ( Query.Options <$> nameOption <*> descriptionOption )
+queryOptions = Query <$> ( Query.Options <$> recipeIdOption <*> nameOption <*> descriptionOption )
 
 --
 -- Program Options
@@ -56,7 +56,7 @@ programInfo = info (programCommand <**> helper)
   ( fullDesc <> progDesc "Query a recipe database" <> header "recipes - lots of them!" )
 
 description :: Parser (Maybe Description)
-description = argument (maybeStr2 Description) (metavar "DESCRIPTION" <> value Nothing)
+description = argument (maybeAuto Description) (metavar "DESCRIPTION" <> value Nothing)
 
 descriptionOption = option (maybeAuto Description)
   ( long "description" <>
@@ -73,7 +73,19 @@ nameOption = option (maybeAuto Name)
     short 'n' <>
     metavar "NAME" <>
     value Nothing <>
-    help "the recipe name" )
+    help "recipe name" )
+
+
+recipeId :: Parser (Maybe RecipeId)
+recipeId = argument ( maybeAuto RecipeId ) (metavar "RECIPE_ID")
+
+recipeIdOption :: Parser (Maybe RecipeId)
+recipeIdOption = option ( maybeAuto RecipeId )
+  ( long "id" <>
+    short 'i' <>
+    metavar "RECIPE_ID" <>
+    value Nothing <>
+    help "recipe id" )
 
 maybeStr :: ReadM (Maybe String)
 maybeStr = Just <$> str
