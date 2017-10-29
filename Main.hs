@@ -59,7 +59,7 @@ programInfo = info (programCommand <**> helper)
 description :: Parser (Maybe Description)
 description = argument (maybeStr2 Description) (metavar "DESCRIPTION" <> value Nothing)
 
-description2 = option (maybeStr2 Description)
+descriptionOption = option (maybeStr2 Description)
   ( long "description" <>
     short 'd' <>
     metavar "DESCRIPTION" <>
@@ -69,7 +69,7 @@ description2 = option (maybeStr2 Description)
 name :: Parser Name
 name = argument (Name <$> str) (metavar "NAME")
 
-name2 = option (Name <$> str)
+nameOption = option (Name <$> str)
   ( long "name" <>
     short 'n' <>
     metavar "NAME" <>
@@ -108,8 +108,8 @@ mainWithArgs stringArgs = do
   conn <- setupDatabase
   runAction conn cmd
 
-hello :: IO ()
-hello = do
+main :: IO ()
+main = do
   cmd <- execParser programInfo
   conn <- setupDatabase
 
