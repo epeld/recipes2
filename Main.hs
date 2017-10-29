@@ -106,35 +106,35 @@ mainWithArgs stringArgs = do
   let args = words stringArgs
   cmd <- handleParseResult $ execParserPure programPrefs programInfo args
   conn <- setupDatabase
-  runAction conn cmd
+  runCommand conn cmd
 
 main :: IO ()
 main = do
   cmd <- execParser programInfo
   conn <- setupDatabase
 
-  runAction conn cmd
+  runCommand conn cmd
 
 
 printHelp :: IO a
 printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo ShowHelpText mempty
 
-runAction :: Connection -> ProgramCommand -> IO ()
+runCommand :: Connection -> ProgramCommand -> IO ()
 
-runAction conn (Insert (Name name) desc) = do
+runCommand conn (Insert (Name name) desc) = do
   let d = case desc of
         Nothing -> "NULL"
         Just (Description dc) -> dc
   n <- execute conn "INSERT INTO recipes (name, description) VALUES (?,?)" [name, d]
   putStrLn (show n ++ " recipe(s) added")
 
-runAction conn List = do
+runCommand conn List = do
   xs <- query_ conn "SELECT id, name, description FROM recipes"
   forM_ xs $ \ (id, name, description) ->
     putStrLn $ show (id :: Int) ++ ", " ++ Text.unpack name ++ ", " ++ Text.unpack description
     
-runAction conn Status = do
+runCommand conn Status = do
   [Only i] <- query_ conn "SELECT count(*) FROM recipes"
   putStrLn (unwords [(show (i :: Int)), "recipes", "in", "database"])
 
-runAction _ Help = printHelp
+runCommand _ Help = printHelp
