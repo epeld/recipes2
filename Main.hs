@@ -9,12 +9,9 @@ import qualified Data.Text as Text
 
 import Control.Monad
 
+import Types
+import qualified Insert
 
---
--- Insert Command
---
-newtype Name = Name String deriving (Show)
-newtype Description = Description String deriving (Show)
 
 --
 -- Program Actions
@@ -22,7 +19,7 @@ newtype Description = Description String deriving (Show)
 data ProgramCommand =
   List |
   Status |
-  Insert Name (Maybe Description) |
+  Insert Insert.Options |
   Help
   deriving (Show)
 
@@ -46,7 +43,7 @@ programCommand = hsubparser
 commandOptions :: ProgramCommand -> Parser ProgramCommand
 commandOptions x = pure x
 
-insertOptions = Insert <$> name <*> description
+insertOptions = Insert <$> (Insert.Options <$> name <*> description)
 
 --
 -- Program Options
@@ -121,12 +118,9 @@ printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo
 
 runCommand :: Connection -> ProgramCommand -> IO ()
 
-runCommand conn (Insert (Name name) desc) = do
-  let d = case desc of
-        Nothing -> "NULL"
-        Just (Description dc) -> dc
-  n <- execute conn "INSERT INTO recipes (name, description) VALUES (?,?)" [name, d]
-  putStrLn (show n ++ " recipe(s) added")
+runCommand conn (Insert opts) = do
+  Insert.run opts conn
+
 
 runCommand conn List = do
   xs <- query_ conn "SELECT id, name, description FROM recipes"
