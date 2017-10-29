@@ -11,15 +11,16 @@ import Control.Monad
 
 import Types
 import qualified Insert
+import qualified Query
 
 
 --
 -- Program Actions
 --
 data ProgramCommand =
-  List |
-  Status |
+  Query Query.Options |
   Insert Insert.Options |
+  Status |
   Help
   deriving (Show)
 
@@ -27,23 +28,24 @@ data ProgramCommand =
 insertCommand :: Mod CommandFields ProgramCommand
 insertCommand = command "insert" ( info ( insertOptions ) ( progDesc "Insert a new Recipe with name NAME and (optionally) description DESCRIPTION"))
 
-listCommand :: Mod CommandFields ProgramCommand
-listCommand = command "list" ( info (commandOptions List) ( progDesc "List Available Recipes"))
+queryCommand :: Mod CommandFields ProgramCommand
+queryCommand = command "query" ( info ( queryOptions ) ( progDesc "Query Available Recipes"))
 
 statusCommand :: Mod CommandFields ProgramCommand
-statusCommand = command "status" ( info (commandOptions List) ( progDesc "Print Status Info"))
+statusCommand = command "status" ( info (commandOptions Status) ( progDesc "Print Status Info"))
 
 helpCommand :: Mod CommandFields ProgramCommand
 helpCommand = command "help" ( info (pure Help) ( progDesc "Print This Message" ) )
 
 programCommand :: Parser ProgramCommand
 programCommand = hsubparser
-  ( listCommand <> statusCommand <> insertCommand <> helpCommand )
+  ( queryCommand <> statusCommand <> insertCommand <> helpCommand )
 
 commandOptions :: ProgramCommand -> Parser ProgramCommand
 commandOptions x = pure x
 
-insertOptions = Insert <$> (Insert.Options <$> name <*> description)
+insertOptions = Insert <$> ( Insert.Options <$> name <*> description )
+queryOptions = Query <$> ( Query.Options <$> nameOption <*> descriptionOption )
 
 --
 -- Program Options
@@ -66,16 +68,17 @@ descriptionOption = option (maybeStr2 Description)
 name :: Parser Name
 name = argument (Name <$> str) (metavar "NAME")
 
-nameOption = option (Name <$> str)
+nameOption = option (maybeStr2 Name)
   ( long "name" <>
     short 'n' <>
     metavar "NAME" <>
+    value Nothing <>
     help "the recipe name" )
 
 maybeStr :: ReadM (Maybe String)
 maybeStr = Just <$> str
 
-maybeStr2 f = (Just . f) <$> str
+maybeStr2 f = Just <$> (f <$> str)
 
 --
 -- MySQL Setup
@@ -117,13 +120,8 @@ printHelp :: IO a
 printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo ShowHelpText mempty
 
 runCommand :: ProgramCommand -> Connection -> IO ()
-
 runCommand (Insert opts) conn = Insert.run opts conn
-
-runCommand List conn = do
-  xs <- query_ conn "SELECT id, name, description FROM recipes"
-  forM_ xs $ \ (id, name, description) ->
-    putStrLn $ show (id :: Int) ++ ", " ++ Text.unpack name ++ ", " ++ Text.unpack description
+runCommand (Query opts) conn = Query.run opts conn
     
 runCommand Status conn = do
   [Only i] <- query_ conn "SELECT count(*) FROM recipes"
