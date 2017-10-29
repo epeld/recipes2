@@ -118,9 +118,7 @@ printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo
 
 runCommand :: ProgramCommand -> Connection -> IO ()
 
-runCommand (Insert opts) conn = do
-  Insert.run opts conn
-
+runCommand (Insert opts) conn = Insert.run opts conn
 
 runCommand List conn = do
   xs <- query_ conn "SELECT id, name, description FROM recipes"
