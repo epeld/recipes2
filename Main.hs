@@ -12,6 +12,7 @@ import Control.Monad
 import Types
 import qualified Insert
 import qualified Query
+import qualified Delete
 
 
 --
@@ -20,6 +21,7 @@ import qualified Query
 data ProgramCommand =
   Query Query.Options |
   Insert Insert.Options |
+  Delete Delete.Options | 
   Status |
   Help
   deriving (Show)
@@ -27,6 +29,9 @@ data ProgramCommand =
 
 insertCommand :: Mod CommandFields ProgramCommand
 insertCommand = command "insert" ( info ( insertOptions ) ( progDesc "Insert a new Recipe with name NAME and (optionally) description DESCRIPTION"))
+
+deleteCommand :: Mod CommandFields ProgramCommand
+deleteCommand = command "delete" ( info ( deleteOptions ) ( progDesc "Delete a Recipe given its RECIPE_ID"))
 
 queryCommand :: Mod CommandFields ProgramCommand
 queryCommand = command "query" ( info ( queryOptions ) ( progDesc "Query Available Recipes"))
@@ -39,13 +44,14 @@ helpCommand = command "help" ( info (pure Help) ( progDesc "Print This Message" 
 
 programCommand :: Parser ProgramCommand
 programCommand = hsubparser
-  ( queryCommand <> statusCommand <> insertCommand <> helpCommand )
+  ( queryCommand <> insertCommand <> deleteCommand <> statusCommand <> helpCommand )
 
 commandOptions :: ProgramCommand -> Parser ProgramCommand
 commandOptions x = pure x
 
 insertOptions = Insert <$> ( Insert.Options <$> name <*> description )
 queryOptions = Query <$> ( Query.Options <$> recipeIdOption <*> nameOption <*> descriptionOption )
+deleteOptions = Delete <$> ( Delete.Options <$> recipeId )
 
 --
 -- Program Options
@@ -76,8 +82,8 @@ nameOption = option (maybeStr2 Name)
     help "recipe name" )
 
 
-recipeId :: Parser (Maybe RecipeId)
-recipeId = argument ( maybeAuto RecipeId ) (metavar "RECIPE_ID")
+recipeId :: Parser RecipeId
+recipeId = argument ( RecipeId <$> auto ) (metavar "RECIPE_ID")
 
 recipeIdOption :: Parser (Maybe RecipeId)
 recipeIdOption = option ( maybeAuto RecipeId )
@@ -136,6 +142,7 @@ printHelp = handleParseResult . Failure $ parserFailure programPrefs programInfo
 runCommand :: ProgramCommand -> Connection -> IO ()
 runCommand (Insert opts) conn = Insert.run opts conn
 runCommand (Query opts) conn = Query.run opts conn
+runCommand (Delete opts) conn = Delete.run opts conn
     
 runCommand Status conn = do
   [Only i] <- query_ conn "SELECT count(*) FROM recipes"
