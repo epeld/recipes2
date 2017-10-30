@@ -8,6 +8,7 @@ import Database.MySQL.Simple
 import qualified Data.Text as Text
 import Control.Monad
 import Text.Printf
+import Control.Applicative
 
 data Options = Options
   { id :: Maybe RecipeId
@@ -37,10 +38,19 @@ selectQuery opts =
     Just i -> selectById i
     Nothing -> selectMultipleQuery opts
 
+
 selectById :: RecipeId -> Connection -> IO [ResultTuple]
 selectById (RecipeId recipeId) conn = do
   query conn "SELECT id, name, description FROM recipes WHERE id = ? LIMIT 1" (Only recipeId)
 
+
 selectMultipleQuery :: Options -> Connection -> IO [ResultTuple]
 selectMultipleQuery opts conn = do
-  query_ conn "SELECT id, name, description FROM recipes WHERE name LIKE 'foo' AND description LIKE 'bar' LIMIT 10"
+  case (fromName <$> name opts, fromDescription <$> description opts) of
+    (Just n, Just d) -> query conn "SELECT id, name, description FROM recipes WHERE name LIKE ? AND description LIKE ? LIMIT 10" [n, d]
+    (Just n, Nothing) -> query conn "SELECT id, name, description FROM recipes WHERE name LIKE ? LIMIT 10" [n]
+    (Nothing, Just d) -> query conn "SELECT id, name, description FROM recipes WHERE description LIKE ? LIMIT 10" [d]
+    (Nothing, Nothing) -> query_ conn "SELECT id, name, description FROM recipes LIMIT 10"
+
+fromName (Name n) = "%" ++ n ++ "%"
+fromDescription (Description d) = "%" ++ d ++ "%"

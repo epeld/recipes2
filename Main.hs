@@ -56,9 +56,9 @@ programInfo = info (programCommand <**> helper)
   ( fullDesc <> progDesc "Query a recipe database" <> header "recipes - lots of them!" )
 
 description :: Parser (Maybe Description)
-description = argument (maybeAuto Description) (metavar "DESCRIPTION" <> value Nothing)
+description = argument (maybeStr2 Description) (metavar "DESCRIPTION" <> value Nothing)
 
-descriptionOption = option (maybeAuto Description)
+descriptionOption = option (maybeStr2 Description)
   ( long "description" <>
     short 'd' <>
     metavar "DESCRIPTION" <>
@@ -68,7 +68,7 @@ descriptionOption = option (maybeAuto Description)
 name :: Parser Name
 name = argument (Name <$> str) (metavar "NAME")
 
-nameOption = option (maybeAuto Name)
+nameOption = option (maybeStr2 Name)
   ( long "name" <>
     short 'n' <>
     metavar "NAME" <>
@@ -89,6 +89,8 @@ recipeIdOption = option ( maybeAuto RecipeId )
 
 maybeStr :: ReadM (Maybe String)
 maybeStr = Just <$> str
+
+maybeStr2 f = Just <$> (f <$> str)
 
 maybeAuto f = Just <$> (f <$> auto)
 
