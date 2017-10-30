@@ -28,13 +28,13 @@ data ProgramCommand =
 
 
 insertCommand :: Mod CommandFields ProgramCommand
-insertCommand = command "insert" ( info ( insertOptions ) ( progDesc "Insert a new Recipe with name NAME and (optionally) description DESCRIPTION"))
+insertCommand = command "insert" ( info insertOptions ( progDesc "Insert a new Recipe with name NAME and (optionally) description DESCRIPTION"))
 
 deleteCommand :: Mod CommandFields ProgramCommand
-deleteCommand = command "delete" ( info ( deleteOptions ) ( progDesc "Delete a Recipe given its RECIPE_ID"))
+deleteCommand = command "delete" ( info deleteOptions ( progDesc "Delete a Recipe given its RECIPE_ID"))
 
 queryCommand :: Mod CommandFields ProgramCommand
-queryCommand = command "query" ( info ( queryOptions ) ( progDesc "Query Available Recipes"))
+queryCommand = command "query" ( info queryOptions ( progDesc "Query Available Recipes"))
 
 statusCommand :: Mod CommandFields ProgramCommand
 statusCommand = command "status" ( info (commandOptions Status) ( progDesc "Print Status Info"))
