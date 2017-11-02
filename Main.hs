@@ -13,6 +13,7 @@ import Types
 import qualified Insert
 import qualified Query
 import qualified Delete
+import qualified Ingredient
 
 
 --
@@ -21,7 +22,8 @@ import qualified Delete
 data ProgramCommand =
   Query Query.Options |
   Insert Insert.Options |
-  Delete Delete.Options | 
+  Delete Delete.Options |
+  Ingredient Ingredient.Command |
   Status |
   Help
   deriving (Show)
@@ -36,6 +38,8 @@ deleteCommand = command "delete" ( info deleteOptions ( progDesc "Delete a Recip
 queryCommand :: Mod CommandFields ProgramCommand
 queryCommand = command "query" ( info queryOptions ( progDesc "Query Available Recipes"))
 
+ingredientCommand = command "ingredient" ( info (Ingredient <$> Ingredient.commandParser) (progDesc "Ingredient subcommands"))
+
 statusCommand :: Mod CommandFields ProgramCommand
 statusCommand = command "status" ( info (commandOptions Status) ( progDesc "Print Status Info"))
 
@@ -44,7 +48,12 @@ helpCommand = command "help" ( info (pure Help) ( progDesc "Print This Message" 
 
 programCommand :: Parser ProgramCommand
 programCommand = hsubparser
-  ( queryCommand <> insertCommand <> deleteCommand <> statusCommand <> helpCommand )
+  (  queryCommand
+  <> insertCommand
+  <> deleteCommand
+  <> statusCommand
+  <> helpCommand
+  <> ingredientCommand ) 
 
 commandOptions :: ProgramCommand -> Parser ProgramCommand
 commandOptions x = pure x
@@ -143,6 +152,7 @@ runCommand :: ProgramCommand -> Connection -> IO ()
 runCommand (Insert opts) conn = Insert.run opts conn
 runCommand (Query opts) conn = Query.run opts conn
 runCommand (Delete opts) conn = Delete.run opts conn
+runCommand (Ingredient cmd) conn = Ingredient.run cmd conn
     
 runCommand Status conn = do
   [Only i] <- query_ conn "SELECT count(*) FROM recipes"
