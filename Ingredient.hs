@@ -18,7 +18,7 @@ commands :: Mod CommandFields Command
 commands = addCommand
 
 commandParser :: Parser Command
-commandParser = hsubparser addCommand
+commandParser = hsubparser commands
 
 run :: Command -> Connection -> IO ()
 run Add _ = putStrLn "WORK IN PROGRESS"
