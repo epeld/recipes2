@@ -6,7 +6,7 @@ import Database.MySQL.Simple
 
 data Options = Options
   { name :: Name
-  , description :: (Maybe Description) }
+  , description :: Maybe Description }
   deriving (Show, Eq)
 
 
