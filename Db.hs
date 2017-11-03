@@ -9,6 +9,7 @@ import Schema
 
 data Command =
   Schema |
+  Create (Maybe Schema.Table) |
   Drop (Maybe Schema.Table)
   deriving (Show, Eq)
 
@@ -24,11 +25,18 @@ dropCommand :: Mod CommandFields Command
 dropCommand = command "drop" ( info opts desc )
   where
     desc = progDesc "Drop Tables (DESTRUCTIVE OPERATION)"
-    opts = Drop <$> hsubparser ( metavar "TABLE" <> dropAll <> mconcat (dropTable <$> tables) )
+    opts = Drop <$> hsubparser ( metavar "TABLE" <> allTables <> mconcat (dropTable <$> tables) )
 
 
-dropAll :: Mod CommandFields (Maybe Table)
-dropAll = command "all" ( info opts desc )
+createCommand :: Mod CommandFields Command
+createCommand = command "create" ( info opts desc )
+  where
+    desc = progDesc "Create Tables"
+    opts = Create <$> hsubparser ( metavar "TABLE" <> allTables <> mconcat (dropTable <$> tables) )
+
+
+allTables :: Mod CommandFields (Maybe Table)
+allTables = command "all" ( info opts desc )
   where
     desc = progDesc "All tables"
     opts = pure Nothing
@@ -48,7 +56,7 @@ tableName RecipeIngredients = "recipe_ingredients"
 
 
 commands :: Mod CommandFields Command
-commands = schemaCommand <> dropCommand
+commands = schemaCommand <> createCommand <> dropCommand
 
 
 commandParser :: Parser Command
@@ -57,8 +65,10 @@ commandParser = hsubparser commands
 
 run :: Command -> Connection -> IO ()
 run Schema _ = forM_ Schema.tables printSchema
-run (Drop Nothing) conn =
+run (Create Nothing) conn =
   forM_ Schema.tables $ \table -> execute_ conn (tableCreationQuery table)
+run (Drop Nothing) conn =
+  forM_ Schema.tables $ \table -> execute_ conn (dropTableQuery table)
 
 
 
