@@ -7,10 +7,12 @@ import Database.MySQL.Simple
 
 import Schema
 
+type TableSelection = Maybe Schema.Table
+
 data Command =
   Schema |
-  Create (Maybe Schema.Table) |
-  Drop (Maybe Schema.Table)
+  Create TableSelection |
+  Drop TableSelection
   deriving (Show, Eq)
 
 
@@ -25,28 +27,32 @@ dropCommand :: Mod CommandFields Command
 dropCommand = command "drop" ( info opts desc )
   where
     desc = progDesc "Drop Tables (DESTRUCTIVE OPERATION)"
-    opts = Drop <$> hsubparser ( metavar "TABLE" <> allTables <> mconcat (dropTable <$> tables) )
+    opts = Drop <$> tableParser
 
 
 createCommand :: Mod CommandFields Command
 createCommand = command "create" ( info opts desc )
   where
     desc = progDesc "Create Tables"
-    opts = Create <$> hsubparser ( metavar "TABLE" <> allTables <> mconcat (dropTable <$> tables) )
+    opts = Create <$> tableParser
 
 
-allTables :: Mod CommandFields (Maybe Table)
+allTables :: Mod CommandFields TableSelection
 allTables = command "all" ( info opts desc )
   where
     desc = progDesc "All tables"
     opts = pure Nothing
 
 
-dropTable :: Table -> Mod CommandFields (Maybe Table)
-dropTable t = command ( tableName t ) ( info opts desc )
+specificTable :: Table -> Mod CommandFields TableSelection
+specificTable t = command ( tableName t ) ( info opts desc )
   where
-    desc = progDesc ( "Drop the " ++ tableName t ++ " table" )
-    opts = pure Nothing
+    desc = progDesc ( "The " ++ tableName t ++ " table" )
+    opts = pure (Just t)
+
+
+tableParser :: Parser TableSelection
+tableParser = hsubparser ( metavar "TABLE" <> allTables <> mconcat (specificTable <$> tables) )
 
 
 tableName :: Table -> String
@@ -63,13 +69,22 @@ commandParser :: Parser Command
 commandParser = hsubparser commands
 
 
+selectedTables :: TableSelection -> [Table]
+selectedTables Nothing = Schema.tables
+selectedTables (Just t) = [t]
+
+
 run :: Command -> Connection -> IO ()
 run Schema _ = forM_ Schema.tables printSchema
-run (Create Nothing) conn =
-  forM_ Schema.tables $ \table -> execute_ conn (tableCreationQuery table)
-run (Drop Nothing) conn =
-  forM_ Schema.tables $ \table -> execute_ conn (dropTableQuery table)
+run (Create t) conn = withSelectedTables conn t tableCreationQuery
+run (Drop t) conn = withSelectedTables conn t dropTableQuery
 
+
+withSelectedTables :: Connection -> TableSelection -> (Table -> Query) -> IO ()
+withSelectedTables conn t f =
+  forM_ (selectedTables t) $ \table -> do let q = f table
+                                          printQuery q
+                                          execute_ conn q
 
 
 printSchema :: Table -> IO ()
@@ -79,7 +94,7 @@ printSchema t = do
 
 
 printQuery :: Query -> IO ()
-printQuery = putStrLn . queryToString
+printQuery q = putStrLn ( "Query: " ++ queryToString q )
 
 
 printComment :: String -> IO ()
