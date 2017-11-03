@@ -9,6 +9,7 @@ import Control.Monad
 
 import qualified Recipe
 import qualified Ingredient
+import qualified Db
 import ProgramOptions
 import Schema
 
@@ -18,6 +19,7 @@ import Schema
 data ProgramCommand =
   Recipe Recipe.Command | 
   Ingredient Ingredient.Command |
+  Database Db.Command | 
   Help
   deriving (Show)
 
@@ -26,15 +28,21 @@ recipeCommand :: Mod CommandFields ProgramCommand
 recipeCommand = command "recipe" (info parser desc)
   where
     parser = Recipe <$> Recipe.commandParser
-    desc = progDesc "Recipe Subcommands"
+    desc = progDesc "Recipe Commands"
 
 
 ingredientCommand :: Mod CommandFields ProgramCommand
 ingredientCommand = command "ingredient" (info parser desc)
   where
     parser = Ingredient <$> Ingredient.commandParser
-    desc = progDesc "Ingredient subcommands"
+    desc = progDesc "Ingredient Commands"
 
+
+dbCommand :: Mod CommandFields ProgramCommand
+dbCommand = command "database" (info parser desc)
+  where
+    parser = Database <$> Db.commandParser
+    desc = progDesc "Database Maintenence Commands"
 
 helpCommand :: Mod CommandFields ProgramCommand
 helpCommand = command "help" (info parser desc)
@@ -44,12 +52,15 @@ helpCommand = command "help" (info parser desc)
 
 
 programCommand :: Parser ProgramCommand
-programCommand = hsubparser (recipeCommand <> ingredientCommand <> helpCommand)
+programCommand = hsubparser (
+  recipeCommand <> ingredientCommand <> dbCommand <> helpCommand
+  )
 
 
 run :: ProgramCommand -> Connection -> IO ()
 run (Recipe cmd) conn = Recipe.run cmd conn
 run (Ingredient cmd) conn = Ingredient.run cmd conn
+run (Database cmd) conn = Db.run cmd conn
 run Help _ = printHelp
 
 
