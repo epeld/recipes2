@@ -1,6 +1,4 @@
 
-{-# LANGUAGE OverloadedStrings #-}
-
 import Database.MySQL.Simple
 import Options.Applicative
 
@@ -12,7 +10,7 @@ import Control.Monad
 import qualified Recipe
 import qualified Ingredient
 import ProgramOptions
-
+import Schema
 
 --
 -- Program Actions
@@ -62,8 +60,7 @@ connectInfo = (defaultConnectInfo { connectPassword = "abcabc", connectDatabase 
 
 setupTables :: Connection -> IO ()
 setupTables conn =
-  do let q = "CREATE TABLE IF NOT EXISTS recipes (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(100) NOT NULL, description VARCHAR(300), PRIMARY KEY (id))"
-     execute_ conn q
+  do execute_ conn Schema.recipeTable
      return ()
 
 setupDatabase :: IO Connection
