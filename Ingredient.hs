@@ -6,14 +6,15 @@ import Database.MySQL.Simple
 
 import Schema
 import Types
+import ProgramOptions as Opts
 
 data Command = Add deriving (Show, Eq)
 
 data IngredientParams = Ingredient
-  { name :: String,
+  { name :: Name,
     recipeId :: RecipeId,
-    amount :: Int,
-    unit :: Maybe String
+    amount :: Amount,
+    unit :: Maybe Unit
   }
   deriving (Show, Eq)
 
@@ -47,5 +48,9 @@ run Add conn = withTransaction conn $ do
   return ()
 
 --
+-- Bla
 --
---
+
+ingredientParams :: Parser IngredientParams
+ingredientParams =
+  Ingredient <$> Opts.name <*> Opts.recipeId <*> Opts.amount <*> Opts.unit

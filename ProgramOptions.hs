@@ -15,6 +15,22 @@ descriptionOption = option (maybeStr2 Description)
     value Nothing <>
     help "recipe description" )
 
+
+amount :: Parser Amount
+amount = argument ( Amount <$> auto )
+  ( metavar "AMOUNT" <>
+    help "The amount to use of this ingredient" <>
+    value (Amount 0)
+  )
+
+
+unit :: Parser (Maybe Unit)
+unit = argument (maybeAuto Unit)
+  ( metavar "UNIT" <>
+    help "The unit to use with the amount (if any)" <>
+    value Nothing )
+
+
 name :: Parser Name
 name = argument (Name <$> str) (metavar "NAME")
 
