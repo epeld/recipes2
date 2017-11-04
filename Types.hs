@@ -9,3 +9,8 @@ newtype RecipeId = RecipeId Int deriving (Show, Eq)
 
 recipeIdInt :: RecipeId -> Int
 recipeIdInt (RecipeId int) = int
+
+amountInt (Amount n) = n
+
+nameString (Name n) = n
+unitString (Unit n) = n

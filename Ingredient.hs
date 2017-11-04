@@ -8,7 +8,7 @@ import Schema
 import Types
 import ProgramOptions as Opts
 
-data Command = Add deriving (Show, Eq)
+data Command = Add IngredientParams deriving (Show, Eq)
 
 data IngredientParams = Ingredient
   { name :: Name,
@@ -25,7 +25,7 @@ addCommand :: Mod CommandFields Command
 addCommand = command "add" ( info opts desc )
   where
     desc = progDesc "Add an ingredient to a recipe"
-    opts = pure Add
+    opts = Add <$> ingredientParams
 
 
 commands :: Mod CommandFields Command
@@ -37,14 +37,15 @@ commandParser = hsubparser commands
 
 
 run :: Command -> Connection -> IO ()
-run Add conn = withTransaction conn $ do
-  let ingredientName = "foo"
-      recipeId = 1
-      amount = 1
-      unit = "mg"
+run (Add params) conn = withTransaction conn $ do
+  let ingredientName = nameString (Ingredient.name params)
+      recipeId = recipeIdInt (Ingredient.recipeId params)
+      amount = amountInt (Ingredient.amount params)
+      unit = unitString <$> (Ingredient.unit params)
+      
   execute conn Schema.insertIngredient (Only ingredientName)
   execute conn Schema.insertRecipeIngredient
-    (recipeId :: Int, ingredientName :: String, amount :: Int, unit :: String)
+    (recipeId :: Int, ingredientName :: String, amount :: Int, unit :: Maybe String)
   return ()
 
 --
