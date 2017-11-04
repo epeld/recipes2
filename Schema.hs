@@ -29,6 +29,11 @@ tables = [Recipes, Ingredients, RecipeIngredients]
 queryToString :: Query -> String
 queryToString = read. show
 
+
+traditionalMode :: Query
+traditionalMode = "SET GLOBAL sql_mode = 'TRADITIONAL'"
+
+
 insertIngredient :: Query
 insertIngredient = "INSERT INTO ingredients (name) VALUES ?"
 

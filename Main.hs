@@ -72,6 +72,7 @@ connectInfo = (defaultConnectInfo { connectPassword = "abcabc", connectDatabase 
 setupTables :: Connection -> IO ()
 setupTables conn =
   do execute_ conn (Schema.tableCreationQuery Schema.Recipes)
+     execute_ conn Schema.traditionalMode
      return ()
 
 setupDatabase :: IO Connection
