@@ -28,3 +28,10 @@ tables = [Recipes, Ingredients, RecipeIngredients]
 
 queryToString :: Query -> String
 queryToString = read. show
+
+insertIngredient :: Query
+insertIngredient = "INSERT INTO ingredients (name) VALUES ?"
+
+
+insertRecipeIngredient :: Query
+insertRecipeIngredient = "INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit) VALUES (?, (SELECT id FROM ingredients WHERE name = ? LIMIT 1), ?, ?)"
