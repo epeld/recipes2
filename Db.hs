@@ -15,6 +15,22 @@ data Command =
   Drop TableSelection
   deriving (Show, Eq)
 
+--
+-- Commands
+--
+commandParser :: Parser Command
+commandParser = hsubparser commands
+
+
+commands :: Mod CommandFields Command
+commands = schemaCommand <> createCommand <> dropCommand
+
+
+run :: Command -> Connection -> IO ()
+run Schema _ = forM_ Schema.tables printSchema
+run (Create t) conn = withSelectedTables conn t tableCreationQuery
+run (Drop t) conn = withSelectedTables conn t dropTableQuery
+
 
 schemaCommand :: Mod CommandFields Command
 schemaCommand = command "schema" ( info opts desc )
@@ -37,6 +53,10 @@ createCommand = command "create" ( info opts desc )
     opts = Create <$> tableParser
 
 
+--
+-- Table Parsers
+--
+
 allTables :: Mod CommandFields TableSelection
 allTables = command "all" ( info opts desc )
   where
@@ -55,29 +75,18 @@ tableParser :: Parser TableSelection
 tableParser = hsubparser ( metavar "TABLE" <> allTables <> mconcat (specificTable <$> tables) )
 
 
+--
+-- Helpers
+--
 tableName :: Table -> String
 tableName Recipes = "recipes"
 tableName Ingredients = "ingredients"
 tableName RecipeIngredients = "recipe_ingredients"
 
 
-commands :: Mod CommandFields Command
-commands = schemaCommand <> createCommand <> dropCommand
-
-
-commandParser :: Parser Command
-commandParser = hsubparser commands
-
-
 selectedTables :: TableSelection -> [Table]
 selectedTables Nothing = Schema.tables
 selectedTables (Just t) = [t]
-
-
-run :: Command -> Connection -> IO ()
-run Schema _ = forM_ Schema.tables printSchema
-run (Create t) conn = withSelectedTables conn t tableCreationQuery
-run (Drop t) conn = withSelectedTables conn t dropTableQuery
 
 
 withSelectedTables :: Connection -> TableSelection -> (Table -> Query) -> IO ()
@@ -87,6 +96,9 @@ withSelectedTables conn t f =
                                           execute_ conn q
 
 
+--
+-- Printing
+--
 printSchema :: Table -> IO ()
 printSchema t = do
   printComment (tableName t)
