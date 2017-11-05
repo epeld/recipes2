@@ -25,7 +25,7 @@ amount = argument ( Amount <$> auto )
 
 
 unit :: Parser (Maybe Unit)
-unit = argument (maybeAuto Unit)
+unit = argument (maybeStr2 Unit)
   ( metavar "UNIT" <>
     help "The unit to use with the amount (if any)" <>
     value Nothing )
