@@ -36,6 +36,9 @@ printRow fmt row =
   printf fmt (id :: Int) (Text.unpack name :: String) (take 45 (Text.unpack description) :: String)
 
 
+printRow_ row = printRow "%-10d%45s%45s\n" row
+
+
 withQueryResults opts =
   case Query.id opts of
     Just i -> foldById i

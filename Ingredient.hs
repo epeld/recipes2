@@ -1,5 +1,6 @@
 module Ingredient where
 import Data.Monoid
+import Control.Monad
 
 import Options.Applicative
 import Database.MySQL.Simple
@@ -7,6 +8,7 @@ import Database.MySQL.Simple
 import Schema
 import Types
 import qualified Db
+import qualified Query
 import ProgramOptions as Opts
 
 data Command =
@@ -40,7 +42,7 @@ queryCommand = command "query" ( info opts desc )
 
 
 commands :: Mod CommandFields Command
-commands = addCommand
+commands = addCommand <> queryCommand
 
 
 commandParser :: Parser Command
@@ -61,7 +63,11 @@ run (Add params) conn = withTransaction conn $ do
   return ()
 
 
-run (Query names) conn = Db.q conn Schema.selectRecipesWithIngredients (In names)
+run (Query names) conn = do
+  let strings = map nameString names
+  r <- Db.query conn Schema.selectRecipesWithIngredients [In strings]
+  Query.printHeader
+  forM_ r $ \row -> Query.printRow_ row
 
 --
 -- Subparsers

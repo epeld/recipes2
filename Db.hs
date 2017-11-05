@@ -3,7 +3,7 @@ import Data.Monoid
 import Control.Monad
 
 import Options.Applicative
-import Database.MySQL.Simple
+import Database.MySQL.Simple as MySQL
 
 import Schema
 
@@ -123,3 +123,8 @@ exec conn q p = do
 exec_ conn q p = do
   printQuery q
   execute conn q p  
+
+
+query conn q p = do
+  printQuery q
+  MySQL.query conn q p
