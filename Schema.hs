@@ -40,3 +40,8 @@ insertIngredient = "INSERT IGNORE INTO ingredients (name) VALUES (?)"
 
 insertRecipeIngredient :: Query
 insertRecipeIngredient = "INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit) VALUES (?, (SELECT id FROM ingredients WHERE name = ? LIMIT 1), ?, ?)"
+
+
+# TODO WIP
+selectRecipesWithIngredients :: Query
+selectRecipesWithIngredients = "SELECT FIRST(recipe_id), recipes.name, recipes.description FROM recipe_ingredients WHERE ingredient_id IN (SELECT name FROM ingredients WHERE id IN ?) INNER JOIN recipes ON recipes.id = recipe_ingredients.recipe_id INNER JOIN ingredients ON ingredients.id = recipe_ingredients.ingredient_id GROUP BY recipe_id HAVING count(*) = ?"

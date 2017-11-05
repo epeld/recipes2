@@ -9,7 +9,10 @@ import Types
 import qualified Db
 import ProgramOptions as Opts
 
-data Command = Add IngredientParams deriving (Show, Eq)
+data Command =
+  Add IngredientParams |
+  Query [Name]
+  deriving (Show, Eq)
 
 data IngredientParams = Ingredient
   { name :: Name,
@@ -27,6 +30,13 @@ addCommand = command "add" ( info opts desc )
   where
     desc = progDesc "Add an ingredient to a recipe"
     opts = Add <$> ingredientParams
+
+
+queryCommand :: Mod CommandFields Command
+queryCommand = command "query" ( info opts desc )
+  where
+    desc = progDesc "Given a set of ingredients, find matching recipes"
+    opts = Query <$> ingredientNames
 
 
 commands :: Mod CommandFields Command
@@ -50,10 +60,17 @@ run (Add params) conn = withTransaction conn $ do
     
   return ()
 
+
+run (Query names) conn = Db.q conn Schema.selectRecipesWithIngredients (In names)
+
 --
--- Bla
+-- Subparsers
 --
 
 ingredientParams :: Parser IngredientParams
 ingredientParams =
   Ingredient <$> Opts.name <*> Opts.recipeId <*> Opts.amount <*> Opts.unit
+
+
+ingredientNames :: Parser [Name]
+ingredientNames = pure <$> Opts.name -- TODO support multiple names later if possible
