@@ -35,7 +35,7 @@ traditionalMode = "SET GLOBAL sql_mode = 'TRADITIONAL'"
 
 
 insertIngredient :: Query
-insertIngredient = "INSERT IGNORE INTO ingredients (name) VALUES ?"
+insertIngredient = "INSERT IGNORE INTO ingredients (name) VALUES (?)"
 
 
 insertRecipeIngredient :: Query
