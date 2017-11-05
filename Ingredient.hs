@@ -65,7 +65,7 @@ run (Add params) conn = withTransaction conn $ do
 
 run (Query names) conn = do
   let strings = map nameString names
-  r <- Db.query conn Schema.selectRecipesWithIngredients [In strings]
+  r <- Db.query conn Schema.selectRecipesWithIngredients (In strings, length strings)
   Query.printHeader
   forM_ r $ \row -> Query.printRow_ row
 

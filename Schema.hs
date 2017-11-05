@@ -12,8 +12,8 @@ data Table =
 
 tableCreationQuery :: Table -> Query
 tableCreationQuery Recipes = "CREATE TABLE IF NOT EXISTS recipes (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(100) NOT NULL, description VARCHAR(300), PRIMARY KEY (id))"
-tableCreationQuery Ingredients = "CREATE TABLE IF NOT EXISTS ingredients (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(100) NOT NULL, PRIMARY KEY (id));"
-tableCreationQuery RecipeIngredients = "CREATE TABLE IF NOT EXISTS recipe_ingredients (id INT NOT NULL AUTO_INCREMENT, recipe_id INT NOT NULL, ingredient_id INT NOT NULL, FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE, FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE, amount DECIMAL NOT NULL, unit VARCHAR(50), PRIMARY KEY (id));"
+tableCreationQuery Ingredients = "CREATE TABLE IF NOT EXISTS ingredients (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(100) NOT NULL, PRIMARY KEY (id), UNIQUE (name));"
+tableCreationQuery RecipeIngredients = "CREATE TABLE IF NOT EXISTS recipe_ingredients (id INT NOT NULL AUTO_INCREMENT, recipe_id INT NOT NULL, ingredient_id INT NOT NULL, FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE, FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE, amount DECIMAL NOT NULL, unit VARCHAR(50), PRIMARY KEY (id), UNIQUE (recipe_id, ingredient_id));"
 
 
 dropTableQuery :: Table -> Query
@@ -43,4 +43,4 @@ insertRecipeIngredient = "INSERT INTO recipe_ingredients (recipe_id, ingredient_
 
 
 selectRecipesWithIngredients :: Query
-selectRecipesWithIngredients = "SELECT recipe_id, recipes.name, recipes.description FROM recipe_ingredients INNER JOIN recipes ON recipes.id = recipe_ingredients.recipe_id WHERE ingredient_id IN (SELECT id FROM ingredients WHERE name IN ?) GROUP BY recipe_id"
+selectRecipesWithIngredients = "SELECT recipe_id, recipes.name, recipes.description FROM recipe_ingredients INNER JOIN recipes ON recipes.id = recipe_ingredients.recipe_id WHERE ingredient_id IN (SELECT id FROM ingredients WHERE name IN ?) GROUP BY recipe_id HAVING count(ingredient_id) = ?"
