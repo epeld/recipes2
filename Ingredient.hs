@@ -6,6 +6,7 @@ import Database.MySQL.Simple
 
 import Schema
 import Types
+import qualified Db
 import ProgramOptions as Opts
 
 data Command = Add IngredientParams deriving (Show, Eq)
@@ -42,10 +43,11 @@ run (Add params) conn = withTransaction conn $ do
       recipeId = recipeIdInt (Ingredient.recipeId params)
       amount = amountInt (Ingredient.amount params)
       unit = unitString <$> (Ingredient.unit params)
-      
-  execute conn Schema.insertIngredient (Only ingredientName)
-  execute conn Schema.insertRecipeIngredient
+
+  Db.exec conn Schema.insertIngredient (Only ingredientName)
+  Db.exec conn Schema.insertRecipeIngredient
     (recipeId :: Int, ingredientName :: String, amount :: Int, unit :: Maybe String)
+    
   return ()
 
 --

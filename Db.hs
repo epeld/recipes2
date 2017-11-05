@@ -111,3 +111,15 @@ printQuery q = putStrLn ( "Query: " ++ queryToString q )
 
 printComment :: String -> IO ()
 printComment comment = putStrLn ("\n%% " ++ comment)
+
+
+--
+-- Query Helper
+--
+exec conn q p = do
+  printQuery q
+  execute conn q p
+
+exec_ conn q p = do
+  printQuery q
+  execute conn q p  
