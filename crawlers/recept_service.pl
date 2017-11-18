@@ -1,6 +1,16 @@
-:- module(recept_service, [parse_recipe_dom/2, parse_links/2]).
+:- module(recept_service, [parse_recipe_dom/2,
+                           parse_links/2,
+                           base_url/1,
+                           search_url/1]).
 
 :- use_module(library(xpath)).
+
+base_url('http://recept.se').
+
+recipe_url('/content/fishnchips').
+%recipe_url('/recept/ost-och-skinkfyllda-kycklingfileer').
+
+search_url('/recept').
 
 parse_recipe_dom(Contents, recipe(Name, Instructions, Ingredients, Related)) :-
   recipe_name(Contents, Name),
