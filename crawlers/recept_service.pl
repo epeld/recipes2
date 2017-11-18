@@ -1,7 +1,8 @@
 :- module(recept_service, [parse_recipe_dom/2,
                            parse_links/2,
                            base_url/1,
-                           search_url/1]).
+                           search_url/1,
+                           recipe_url/1]).
 
 :- use_module(library(xpath)).
 

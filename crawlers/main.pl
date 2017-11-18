@@ -1,7 +1,9 @@
 :- module(main, []).
 
 
-:- use_module(recept_service, [parse_recipe_dom/2]).
+:- use_module(recept_service, [parse_recipe_dom/2,
+                               base_url/1,
+                               recipe_url/1]).
 
 
 run :-
@@ -17,8 +19,10 @@ run(BaseUrl, RecipeUrl, Visited, Stream) :-
   N < 5,
   
   full_url(BaseUrl, RecipeUrl, Url),
-  load_recipe_url(Url, Recipe),
-  
+  get_html(Url, DOM),
+
+  !
+  parse_recipe_dom(DOM, Recipe),
   writeq(Stream, Recipe), !,
 
   % Find next recipe
@@ -35,11 +39,4 @@ full_url(BaseUrl, Relative, Url) :-
   string_concat(BaseUrl, Relative, Url).
 
 recipe_related(recipe(_,_,_,R), R).
-
-
-load_recipe_url(Url, Recipe) :-
-  %load_html('test.html', Contents, []),
-  get_html(Url, Contents),
-  !,
-  parse_recipe_dom(Contents, Recipe).
 
