@@ -1,5 +1,6 @@
 :- module(stream_service, [call_with_stream/2]).
-
+:- meta_predicate call_with_stream(1, 1).
+:- meta_predicate call_with_file_stream(+, +, +, 1).
 
 % Call Goal with a file stream as last argument
 % Forwards FileName, Mode, Options to open
