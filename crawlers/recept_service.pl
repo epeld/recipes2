@@ -1,6 +1,16 @@
-:- module(recept, []).
+:- module(recept_service, [parse_recipe_dom/2, parse_links/2]).
 
 :- use_module(library(xpath)).
+
+parse_recipe_dom(Contents, recipe(Name, Instructions, Ingredients, Related)) :-
+  recipe_name(Contents, Name),
+  all_recipe_instructions(Contents, Instructions),
+  all_recipe_ingredients(Contents, Ingredients),
+  all_related_recipes(Contents, Related).
+  
+
+parse_links(Contents, Links) :-
+  all_linked_recipes(Contents, Links).
 
 
 
@@ -67,15 +77,6 @@ all_recipe_ingredients(Contents, Ingredients) :-
   bagof(I, recipe_ingredient(Contents, I), Ingredients).
 
 
-parse_recipe_dom(Contents, recipe(Name, Instructions, Ingredients, Related)) :-
-  recipe_name(Contents, Name),
-  all_recipe_instructions(Contents, Instructions),
-  all_recipe_ingredients(Contents, Ingredients),
-  all_related_recipes(Contents, Related).
-  
-
-parse_links(Contents, Links) :-
-  all_linked_recipes(Contents, Links).
 
 % Helper that matches its goal exactly once (throws if fails)
 exactly_once(Goal) :-

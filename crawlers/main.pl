@@ -2,7 +2,7 @@
 
 :- use_module(library(http/http_client)).
 
-:- use_module(recept, []).
+:- use_module(recept_service, [parse_recipe_dom/2, parse_links/2]).
 
 
 base_url('http://recept.se').
@@ -63,13 +63,13 @@ load_recipe_url(Url, Recipe) :-
   %load_html('test.html', Contents, []),
   load_page_content(Url, Contents),
   !,
-  recept:parse_recipe_dom(Contents, Recipe).
+  parse_recipe_dom(Contents, Recipe).
 
 load_links_url(Url, Recipe) :-
   %load_html('test.html', Contents, []),
   load_page_content(Url, Contents),
   !,
-  recept:parse_links(Contents, Recipe).
+  parse_links(Contents, Recipe).
 
 
 
