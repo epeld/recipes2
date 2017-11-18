@@ -3,6 +3,11 @@
 
 
 recipe_props(Recipe, Props) :-
+  length(Props, 4),
+  member(related(_), Props),
+  member(instructions(_), Props),
+  member(name(_), Props),
+  member(ingredients(_), Props),
   Recipe = Props. 
 
 
