@@ -1,6 +1,7 @@
 :- module(main, []).
 
 
+:- use_module(recipe_model, [recipe_related/2]).
 :- use_module(recept_service, [parse_recipe_dom/2,
                                base_url/1,
                                recipe_url/1]).
@@ -21,14 +22,11 @@ run(BaseUrl, RecipeUrl, Visited, Stream) :-
   full_url(BaseUrl, RecipeUrl, Url),
   get_html(Url, DOM),
 
-  !
+  !,
   parse_recipe_dom(DOM, Recipe),
   writeq(Stream, Recipe), !,
 
-  % Find next recipe
-  recipe_related(Recipe, Links),
-  member(other(RecipeUrl2), Links),
-  \+ member(RecipeUrl2, Visited),
+  next_recipe_url(Recipe, Visited, RecipeUrl2),
   !,
 
   % Recurse
@@ -38,5 +36,8 @@ run(BaseUrl, RecipeUrl, Visited, Stream) :-
 full_url(BaseUrl, Relative, Url) :-
   string_concat(BaseUrl, Relative, Url).
 
-recipe_related(recipe(_,_,_,R), R).
 
+next_recipe_url(Recipe, Visited, RecipeUrl) :-
+  recipe_related(Recipe, Links),
+  member(other(RecipeUrl), Links),
+  \+ member(RecipeUrl, Visited).

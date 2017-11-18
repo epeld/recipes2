@@ -5,6 +5,7 @@
                            recipe_url/1]).
 
 :- use_module(library(xpath)).
+:- use_module(recipe_model, [recipe_props/1]).
 
 base_url('http://recept.se').
 
@@ -13,11 +14,15 @@ recipe_url('/content/fishnchips').
 
 search_url('/recept').
 
-parse_recipe_dom(Contents, recipe(Name, Instructions, Ingredients, Related)) :-
+parse_recipe_dom(Contents, Recipe) :-
   recipe_name(Contents, Name),
   all_recipe_instructions(Contents, Instructions),
   all_recipe_ingredients(Contents, Ingredients),
-  all_related_recipes(Contents, Related).
+  all_related_recipes(Contents, Related),
+  recipe_model(Recipe, [name(Name),
+                        instructions(Instructions),
+                        ingredients(Ingredients),
+                        related(Related)]).
   
 
 parse_links(Contents, Links) :-
