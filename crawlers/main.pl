@@ -24,7 +24,8 @@ run(BaseUrl, RecipeUrl, Visited, Stream) :-
 
   !,
   parse_recipe_dom(DOM, Recipe),
-  writeq(Stream, Recipe), !,
+  writeq(Stream, Recipe),
+  !,
 
   next_recipe_url(Recipe, Visited, RecipeUrl2),
   !,
