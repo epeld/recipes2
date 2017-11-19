@@ -5,7 +5,7 @@
                            recipe_url/1]).
 
 :- use_module(library(xpath)).
-:- use_module(recipe_model, [recipe_props/2]).
+:- use_module(recipe_model, [make_recipe/2]).
 :- use_module(ingredient_model, [make_ingredient/2]).
 
 base_url('http://recept.se').
@@ -20,10 +20,10 @@ parse_recipe_dom(Contents, Recipe) :-
   all_recipe_instructions(Contents, Instructions),
   all_recipe_ingredients(Contents, Ingredients),
   all_related_recipes(Contents, Related),
-  recipe_props(Recipe, [name(Name),
-                        instructions(Instructions),
-                        ingredients(Ingredients),
-                        related(Related)]).
+  make_recipe(Recipe, [name(Name),
+                       instructions(Instructions),
+                       ingredients(Ingredients),
+                       related(Related)]).
   
 
 parse_links(Contents, Links) :-
