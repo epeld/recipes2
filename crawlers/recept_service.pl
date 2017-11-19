@@ -6,6 +6,7 @@
 
 :- use_module(library(xpath)).
 :- use_module(recipe_model, [recipe_props/2]).
+:- use_module(ingredient_model, [make_ingredient/2]).
 
 base_url('http://recept.se').
 
@@ -68,19 +69,20 @@ all_recipe_instructions(Contents, Instructions) :-
 recipe_ingredient(Contents, Ingredient) :-
   xpath(Contents, //div(@class='ingredient',normalize_space), Ingredient0),
   split_string(Ingredient0, " ", "", Parts),
-  exactly_once(ingredient_parts(Parts, Ingredient)).
+  exactly_once(ingredient_parts(Parts, Fields)),
+  make_ingredient(Fields, Ingredient).
 
 
-ingredient_parts([Name], ingredient(Name)).
-ingredient_parts([Amount, Name], ingredient(Name, Amount)).
-ingredient_parts([Amount, Unit, Name], ingredient(Name, Amount, Unit)).
-ingredient_parts([Amount, _Name0, "eller", Name], ingredient(Name, Amount)).
+ingredient_parts([Name], [name(Name)]).
+ingredient_parts([Amount, Name], [name(Name), amount(Amount)]).
+ingredient_parts([Amount, Unit, Name], [name(Name), amount(Amount), unit(Unit)]).
+ingredient_parts([Amount, _Name0, "eller", Name], [name(Name), amount(Amount)]).
 
-ingredient_parts([Amount, Unit | Names], ingredient(Name, Amount, Unit)) :-
+ingredient_parts([Amount, Unit | Names], [name(Name), amount(Amount), unit(Unit)]) :-
   \+ member("eller", Names),
   string_join(Names, Name).
 
-ingredient_parts([Amount, Unit | Names], ingredient(Name, Amount, Unit)) :-
+ingredient_parts([Amount, Unit | Names], [name(Name), amount(Amount), unit(Unit)]) :-
   Parts = [_Part1, ["eller"], Part2],
   append(Parts, Names),
   member("eller", Names),
